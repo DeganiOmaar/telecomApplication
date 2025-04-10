@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "411897634529",
+    "project_id": "ttsante-2ef9f",
+    "storage_bucket": "ttsante-2ef9f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:411897634529:android:c723083b6bd7e023f861a0",
+        "android_client_info": {
+          "package_name": "com.TT.sante"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLQbfGgpo9BGWlyY3u65jDdSeTqbtjWTs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:411897634529:android:53089c39bf6d612ff861a0",
+        "android_client_info": {
+          "package_name": "com.example.application_telecom"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBLQbfGgpo9BGWlyY3u65jDdSeTqbtjWTs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

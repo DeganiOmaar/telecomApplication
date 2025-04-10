@@ -30,7 +30,7 @@ class _ScreensState extends State<Screens> {
   Widget build(BuildContext context) {
      return 
          Scaffold(
-            // backgroundColor: Colors.white,
+            backgroundColor: Colors.white,
             bottomNavigationBar: Padding(
               padding:
                    EdgeInsets.only(
@@ -39,6 +39,7 @@ class _ScreensState extends State<Screens> {
                    top: 4, 
                    bottom: 4),
               child: GNav(
+                backgroundColor: Colors.white,
                 gap: 10,
                 color: Colors.grey,
                 activeColor: Colors.indigo,
