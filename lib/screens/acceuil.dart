@@ -1,4 +1,5 @@
 import 'package:application_telecom/NotificationsPages/notifications.dart';
+import 'package:application_telecom/RemboursementPages/addRemboursement.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -18,11 +19,11 @@ class _PageAcceuilState extends State<PageAcceuil> {
         actions: [
           IconButton(
             onPressed: () {
-              Get.to(()=>Notifications(), 
+              Get.to(()=>AddRemboursement(), 
               transition: Transition.rightToLeftWithFade
               );
             },
-            icon: Icon(Icons.notifications_outlined),
+            icon: Icon(Icons.add_circle_rounded),
           ),
         ],
       ),

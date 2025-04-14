@@ -1,12 +1,16 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:application_telecom/loginPages/login.dart';
 import 'package:application_telecom/profilePages/profilecard.dart';
 import 'package:application_telecom/shared/colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:line_awesome_flutter/line_awesome_flutter.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -16,9 +20,51 @@ class Profile extends StatefulWidget {
 }
 
 class _ProfileState extends State<Profile> {
+
+  Map userData = {};
+  bool isLoading = true;
+
+  getData() async {
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      DocumentSnapshot<Map<String, dynamic>> snapshot = await FirebaseFirestore
+          .instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .get();
+
+      userData = snapshot.data()!;
+    } catch (e) {
+      print(e.toString());
+    }
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getData();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return isLoading
+        ? Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(
+              child: LoadingAnimationWidget.discreteCircle(
+                  size: 32,
+                  color: const Color.fromARGB(255, 16, 16, 16),
+                  secondRingColor: Colors.indigo,
+                  thirdRingColor: Colors.pink.shade400),
+            ),
+          ): 
+    Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
@@ -40,8 +86,8 @@ class _ProfileState extends State<Profile> {
             ],
           ),
           const SizedBox(height: 10),
-          const Text(
-            'Hadil Belaazi',
+           Text(
+            "${userData['nom']} ${userData['prenom']}",
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
@@ -65,8 +111,8 @@ class _ProfileState extends State<Profile> {
                         ),
                       ),
                       Spacer(),
-                      const Text(
-                        "+216 29750827",
+                       Text(
+                        "+216 ${userData['phone']}",
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
@@ -87,8 +133,8 @@ class _ProfileState extends State<Profile> {
                         ),
                       ),
                       Spacer(),
-                      const Text(
-                        "HadilBelaazi@gmail.com",
+                       Text(
+                       userData['email'],
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
@@ -125,7 +171,14 @@ class _ProfileState extends State<Profile> {
                   ),
                   Gap(20),
                   ListTile(
-                    onTap: () {},
+                    onTap: () async{
+                         await FirebaseAuth.instance.signOut();
+                      if (!mounted) return;
+                      Navigator.of(context).pushAndRemoveUntil(
+                          MaterialPageRoute(
+                              builder: (context) => const LoginPage()),
+                          (route) => false);
+                    },
                     leading: Container(
                       width: 40,
                       height: 40,
