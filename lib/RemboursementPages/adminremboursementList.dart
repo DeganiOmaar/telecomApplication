@@ -188,21 +188,63 @@ class _RemboursementAdminListState extends State<RemboursementAdminList> {
     );
   }
 
-  Future<void> _changerEtat(String remboursementId, String nouvelEtat) async {
-    try {
-      await FirebaseFirestore.instance
-          .collection('remboursement')
-          .doc(remboursementId)
-          .update({'etat': nouvelEtat});
+  // Future<void> _changerEtat(String remboursementId, String nouvelEtat) async {
+  //   try {
+  //     await FirebaseFirestore.instance
+  //         .collection('remboursement')
+  //         .doc(remboursementId)
+  //         .update({'etat': nouvelEtat});
 
-      afficherAlert(
-        "Remboursement ${nouvelEtat.toLowerCase()} !",
-        nouvelEtat == "Accepté" ? QuickAlertType.success : QuickAlertType.error,
-      );
-    } catch (e) {
-      afficherAlert("Erreur : ${e.toString()}", QuickAlertType.error);
+  //     afficherAlert(
+  //       "Remboursement ${nouvelEtat.toLowerCase()} !",
+  //       nouvelEtat == "Accepté" ? QuickAlertType.success : QuickAlertType.error,
+  //     );
+  //   } catch (e) {
+  //     afficherAlert("Erreur : ${e.toString()}", QuickAlertType.error);
+  //   }
+  // }
+
+  Future<void> _changerEtat(String remboursementId, String nouvelEtat) async {
+  try {
+    final remboursementRef =
+        FirebaseFirestore.instance.collection('remboursement').doc(remboursementId);
+    final remboursementSnapshot = await remboursementRef.get();
+
+    if (!remboursementSnapshot.exists) {
+      afficherAlert("Demande introuvable", QuickAlertType.error);
+      return;
     }
+
+    final remboursementData = remboursementSnapshot.data()!;
+    final userId = remboursementData['user_id']; 
+    final notifId = FirebaseFirestore.instance.collection('tmp').doc().id; 
+    final message = "Votre demande de remboursement a été $nouvelEtat.";
+
+    // Mettre à jour l'état
+    await remboursementRef.update({'etat': nouvelEtat});
+
+    // Créer la notification
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('notifications')
+        .doc(notifId)
+        .set({
+      'type': nouvelEtat == "Accepté" ? "acceptée" : "refusée",
+      'content': message,
+      'date': Timestamp.now(),
+      'notifId': notifId,
+    });
+
+    afficherAlert(
+      "Remboursement ${nouvelEtat.toLowerCase()} !",
+      nouvelEtat == "Accepté" ? QuickAlertType.success : QuickAlertType.error,
+    );
+  } catch (e) {
+    afficherAlert("Faillance : ${e.toString()}", QuickAlertType.error);
   }
+}
+
 
   void afficherAlert(String message, QuickAlertType type) {
     QuickAlert.show(

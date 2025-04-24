@@ -1,3 +1,4 @@
+import 'package:application_telecom/shared/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,16 +7,14 @@ import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
-import '../shared/colors.dart';
-
-class Notifications extends StatefulWidget {
-  const Notifications({super.key});
+class NotificationsAdmin extends StatefulWidget {
+  const NotificationsAdmin({super.key});
 
   @override
-  State<Notifications> createState() => _NotificationsState();
+  State<NotificationsAdmin> createState() => _NotificationsAdminState();
 }
 
-class _NotificationsState extends State<Notifications> {
+class _NotificationsAdminState extends State<NotificationsAdmin> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -32,8 +31,6 @@ class _NotificationsState extends State<Notifications> {
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(FirebaseAuth.instance.currentUser!.uid)
                   .collection("notifications")
                   .snapshots(),
               builder: (BuildContext context,
@@ -62,9 +59,9 @@ class _NotificationsState extends State<Notifications> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          data['type'],  
-                          style:  TextStyle(
-                              color: data['type'] =="acceptée" ? mainColor : Colors.red,
+                          data['titre'],  
+                          style:  const TextStyle(
+                              color:  mainColor ,
                               fontSize: 17,
                               fontWeight: FontWeight.bold),
                         ),

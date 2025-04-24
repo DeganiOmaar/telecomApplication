@@ -17,6 +17,11 @@ class AddRemboursement extends StatefulWidget {
 }
 
 class _AddRemboursementState extends State<AddRemboursement> {
+  bool validerNumero(String numero) {
+    final RegExp regex = RegExp(r'^[0-9]{8}$');
+    return regex.hasMatch(numero);
+  }
+
   bool isLoading = false;
   bool isLoadingData = true;
   DateTime startDate = DateTime.now();
@@ -53,30 +58,41 @@ class _AddRemboursementState extends State<AddRemboursement> {
     setState(() => isLoadingData = false);
   }
 
-  Future<void> ajouterRemboursement() async {
-    setState(() => isLoading = true);
-    try {
-      String id = const Uuid().v1();
-      await FirebaseFirestore.instance.collection('remboursement').doc(id).set({
-        'Remboursement_id': id,
-        'user_id': userData['uid'],
-        'nom': userData['nom'],
-        'prenom': userData['prenom'],
-        'nomMedecin': nomMedecinController.text,
-        'specialite': specialiteController.text,
-        'pharmacie': listePharmacie,
-        'genre': genreClient,
-        'member': membreController.text,
-        'dateNaissance': startDate,
-        'codeCnam': codeCnamController.text,
-        'numero': numeroController.text,
-        'etat': 'En attente',
-      });
-    } catch (err) {
-      print("$err");
-    }
-    setState(() => isLoading = false);
+Future<void> ajouterRemboursement() async {
+  setState(() => isLoading = true);
+  try {
+    String remboursementId = const Uuid().v1();
+    await FirebaseFirestore.instance.collection('remboursement').doc(remboursementId).set({
+      'Remboursement_id': remboursementId,
+      'user_id': userData['uid'],
+      'nom': userData['nom'],
+      'prenom': userData['prenom'],
+      'nomMedecin': nomMedecinController.text,
+      'specialite': specialiteController.text,
+      'pharmacie': listePharmacie,
+      'genre': genreClient,
+      'member': membreController.text,
+      'dateNaissance': startDate,
+      'codeCnam': codeCnamController.text,
+      'numero': numeroController.text,
+      'etat': 'En attente',
+    });
+
+    // 🔔 Ajout de la notification globale
+    String notifId = const Uuid().v4(); // autre UUID
+    await FirebaseFirestore.instance.collection('notifications').doc(notifId).set({
+      'notifId': notifId,
+      'titre': "Demande de remboursement",
+      'content': 'Nouvelle demande de remboursement envoyée par ${userData['nom']} ${userData['prenom']}.',
+      'date': Timestamp.now(),
+    });
+
+  } catch (err) {
+    print("$err");
   }
+  setState(() => isLoading = false);
+}
+
 
   void afficherAlert() {
     QuickAlert.show(
@@ -251,6 +267,16 @@ class _AddRemboursementState extends State<AddRemboursement> {
                     padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: ElevatedButton.icon(
                       onPressed: () async {
+                        if (!validerNumero(numeroController.text)) {
+                          QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.warning,
+                            text:
+                                "Veuillez entrer un numéro de téléphone valide (8 chiffres)",
+                          );
+                          return;
+                        }
+
                         await ajouterRemboursement();
                         afficherAlert();
                       },

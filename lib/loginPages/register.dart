@@ -101,6 +101,7 @@ class _RegisterPageState extends State<RegisterPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                 const SizedBox(height: 100),
                 const Text(
                   "Inscription",
                   style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
@@ -119,7 +120,12 @@ class _RegisterPageState extends State<RegisterPage> {
                         text: "  Nom",
                         controller: nomController,
                         validator: (value) {
-                          return value!.isEmpty ? "Entrez un nom valide" : null;
+                          if (value == null || value.isEmpty) {
+                            return "Entrez un nom valide";
+                          } else if (!RegExp(r"^[a-zA-Z]+$").hasMatch(value)) {
+                            return "Le nom ne doit contenir que des lettres";
+                          }
+                          return null;
                         },
                       ),
                     ),
@@ -127,17 +133,21 @@ class _RegisterPageState extends State<RegisterPage> {
                     Expanded(
                       child: RegistrationTextField(
                         icon: CupertinoIcons.person,
-                        text: "Prenon",
+                        text: "Prenom",
                         controller: prenomController,
                         validator: (value) {
-                          return value!.isEmpty
-                              ? "Entrez un prenom valide"
-                              : null;
+                          if (value == null || value.isEmpty) {
+                            return "Entrez un prénom valide";
+                          } else if (!RegExp(r"^[a-zA-Z]+$").hasMatch(value)) {
+                            return "Le prénom ne doit contenir que des lettres";
+                          }
+                          return null;
                         },
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 30),
                 RegistrationTextField(
                   icon: CupertinoIcons.mail,
@@ -169,10 +179,12 @@ class _RegisterPageState extends State<RegisterPage> {
                   },
                 ),
                 const SizedBox(height: 30),
-            
+
                 TextFormField(
                   validator: (value) {
-                    return value!.isEmpty ? "Entrer au moins 6 caractères" : null;
+                    return value!.isEmpty
+                        ? "Entrer au moins 6 caractères"
+                        : null;
                   },
                   obscureText: isPasswordVisible,
                   controller: passwordController,
@@ -205,7 +217,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     hintText: "Mot de passe",
-                    hintStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                    hintStyle: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
                       borderSide: const BorderSide(color: Colors.black),
@@ -220,11 +235,13 @@ class _RegisterPageState extends State<RegisterPage> {
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
-            
+
                 const SizedBox(height: 30),
                 TextFormField(
                   validator: (value) {
-                    return value!.isEmpty ? "Entrer au moins 6 caractères" : null;
+                    return value!.isEmpty
+                        ? "Entrer au moins 6 caractères"
+                        : null;
                   },
                   obscureText: isPasswordVisible,
                   controller: confirmPasswordController,
@@ -257,7 +274,10 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                     hintText: "Confirmer mot de passe",
-                    hintStyle: const TextStyle(color: Colors.black, fontSize: 16),
+                    hintStyle: const TextStyle(
+                      color: Colors.black,
+                      fontSize: 16,
+                    ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(25),
                       borderSide: const BorderSide(color: Colors.black),
@@ -272,7 +292,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                 ),
-            
+
                 const SizedBox(height: 20),
                 GestureDetector(
                   onTap: () {},
@@ -322,10 +342,11 @@ class _RegisterPageState extends State<RegisterPage> {
                         child:
                             isLoading
                                 ? Center(
-                                  child: LoadingAnimationWidget.staggeredDotsWave(
-                                    color: whiteColor,
-                                    size: 32,
-                                  ),
+                                  child:
+                                      LoadingAnimationWidget.staggeredDotsWave(
+                                        color: whiteColor,
+                                        size: 32,
+                                      ),
                                 )
                                 : const Text(
                                   "Enregistrer",

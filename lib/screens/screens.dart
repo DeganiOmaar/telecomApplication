@@ -1,3 +1,4 @@
+import 'package:application_telecom/NotificationsPages/notification_admin.dart';
 import 'package:application_telecom/NotificationsPages/notifications.dart';
 import 'package:application_telecom/RemboursementPages/addRemboursement.dart';
 import 'package:application_telecom/RemboursementPages/adminremboursementList.dart';
@@ -5,6 +6,7 @@ import 'package:application_telecom/RemboursementPages/remboursementlist.dart';
 import 'package:application_telecom/profilePages/profile.dart';
 import 'package:application_telecom/screens/acceuil.dart';
 import 'package:application_telecom/screens/assurences.dart';
+import 'package:application_telecom/screens/reclamtion_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -95,10 +97,18 @@ class _ScreensState extends State<Screens> {
                   currentPage = index;
                 });
               },
-              tabs: const [
+              tabs: [
                 GButton(icon: Icons.home_outlined, text: 'Acceuil'),
-                GButton(icon: Icons.notification_important_outlined, text: 'Notifications'),
-                GButton(icon: Icons.book_outlined, text: 'Assurance'),
+
+                GButton(
+                  icon: Icons.notification_important_outlined,
+                  text: 'Notifications',
+                ),
+
+                userData['role'] == 'admin'
+                    ? GButton(icon: Icons.book_outlined, text: 'Reclamations')
+                    : GButton(icon: Icons.book_outlined, text: 'Assurance'),
+
                 GButton(icon: Icons.person_2_outlined, text: 'Profile'),
               ],
             ),
@@ -111,8 +121,10 @@ class _ScreensState extends State<Screens> {
               userData['role'] == 'admin'
                   ? RemboursementAdminList()
                   : RemboursementList(),
-              Notifications(),
-              Assurences(),
+              userData['role'] == 'admin'
+                  ? NotificationsAdmin()
+                  : Notifications(),
+              userData['role'] == 'admin' ? ReclamationPage() : Assurences(),
               Profile(),
             ],
           ),
