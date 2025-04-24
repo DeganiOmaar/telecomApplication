@@ -1,6 +1,5 @@
 // ignore_for_file: unused_local_variable
 import 'package:application_telecom/loginPages/login.dart';
-import 'package:application_telecom/screens/home.dart' show HomePage;
 import 'package:application_telecom/screens/screens.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
