@@ -8,7 +8,6 @@ import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:quickalert/models/quickalert_type.dart';
 import 'package:quickalert/widgets/quickalert_dialog.dart';
 import 'package:uuid/uuid.dart';
-
 class AddRemboursement extends StatefulWidget {
   const AddRemboursement({super.key});
 
@@ -32,8 +31,10 @@ class _AddRemboursementState extends State<AddRemboursement> {
   TextEditingController nomMedecinController = TextEditingController();
   TextEditingController specialiteController = TextEditingController();
   TextEditingController membreController = TextEditingController();
+  TextEditingController prenomMembreController = TextEditingController();
   TextEditingController codeCnamController = TextEditingController();
   TextEditingController numeroController = TextEditingController();
+  TextEditingController cinController = TextEditingController();
 
   Map userData = {};
 
@@ -46,53 +47,57 @@ class _AddRemboursementState extends State<AddRemboursement> {
   Future<void> getData() async {
     setState(() => isLoadingData = true);
     try {
-      DocumentSnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .get();
+      final uid = FirebaseAuth.instance.currentUser!.uid;
+      final snapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
       userData = snapshot.data()!;
+
     } catch (e) {
       print(e.toString());
     }
     setState(() => isLoadingData = false);
   }
 
-Future<void> ajouterRemboursement() async {
-  setState(() => isLoading = true);
-  try {
-    String remboursementId = const Uuid().v1();
-    await FirebaseFirestore.instance.collection('remboursement').doc(remboursementId).set({
-      'Remboursement_id': remboursementId,
-      'user_id': userData['uid'],
-      'nom': userData['nom'],
-      'prenom': userData['prenom'],
-      'nomMedecin': nomMedecinController.text,
-      'specialite': specialiteController.text,
-      'pharmacie': listePharmacie,
-      'genre': genreClient,
-      'member': membreController.text,
-      'dateNaissance': startDate,
-      'codeCnam': codeCnamController.text,
-      'numero': numeroController.text,
-      'etat': 'En attente',
-    });
+  Future<void> ajouterRemboursement() async {
+    setState(() => isLoading = true);
+    try {
+      String remboursementId = const Uuid().v1();
+      await FirebaseFirestore.instance
+          .collection('remboursement')
+          .doc(remboursementId)
+          .set({
+        'Remboursement_id': remboursementId,
+        'user_id': userData['uid'],
+        'nom': userData['nom'],
+        'prenom': userData['prenom'],
+        'nomMedecin': nomMedecinController.text,
+        'specialite': specialiteController.text,
+        'pharmacie': listePharmacie,
+        'genre': genreClient,
+        'member': membreController.text,
+        'prenomMembre': prenomMembreController.text,
+        'dateNaissance': startDate,
+        'codeCnam': codeCnamController.text,
+        'numero': numeroController.text,
+        'cin': cinController.text,
+        'etat': 'En attente',
+      });
 
-    // 🔔 Ajout de la notification globale
-    String notifId = const Uuid().v4(); // autre UUID
-    await FirebaseFirestore.instance.collection('notifications').doc(notifId).set({
-      'notifId': notifId,
-      'titre': "Demande de remboursement",
-      'content': 'Nouvelle demande de remboursement envoyée par ${userData['nom']} ${userData['prenom']}.',
-      'date': Timestamp.now(),
-    });
-
-  } catch (err) {
-    print("$err");
+      String notifId = const Uuid().v4();
+      await FirebaseFirestore.instance
+          .collection('notifications')
+          .doc(notifId)
+          .set({
+        'notifId': notifId,
+        'titre': "Demande de remboursement",
+        'content':
+            'Nouvelle demande de remboursement envoyée par ${userData['nom']} ${userData['prenom']}.',
+        'date': Timestamp.now(),
+      });
+    } catch (err) {
+      print("$err");
+    }
+    setState(() => isLoading = false);
   }
-  setState(() => isLoading = false);
-}
-
 
   void afficherAlert() {
     QuickAlert.show(
@@ -103,8 +108,10 @@ Future<void> ajouterRemboursement() async {
         nomMedecinController.clear();
         specialiteController.clear();
         membreController.clear();
+        prenomMembreController.clear();
         codeCnamController.clear();
         numeroController.clear();
+        cinController.clear();
         setState(() {
           listePharmacie = null;
           genreClient = null;
@@ -155,9 +162,7 @@ Future<void> ajouterRemboursement() async {
           ),
         ),
         items:
-            items
-                .map((e) => DropdownMenuItem<String>(value: e, child: Text(e)))
-                .toList(),
+            items.map((e) => DropdownMenuItem<String>(value: e, child: Text(e))).toList(),
         onChanged: onChanged,
       ),
     );
@@ -172,7 +177,7 @@ Future<void> ajouterRemboursement() async {
         onTap: () async {
           DateTime? picked = await showDatePicker(
             context: context,
-            initialDate: DateTime(2000), // date neutre pour l’ouverture
+            initialDate: DateTime(2000),
             firstDate: DateTime(1900),
             lastDate: DateTime(2100),
           );
@@ -193,7 +198,7 @@ Future<void> ajouterRemboursement() async {
           child: Text(
             isDatePicked
                 ? "${startDate.day}/${startDate.month}/${startDate.year}"
-                : "Date de naissance", // ← affiche rien tant que l'utilisateur n'a rien choisi
+                : "Date de naissance",
             style: const TextStyle(fontSize: 16, color: Colors.black),
           ),
         ),
@@ -205,105 +210,123 @@ Future<void> ajouterRemboursement() async {
   Widget build(BuildContext context) {
     return isLoadingData
         ? Scaffold(
-          backgroundColor: Colors.white,
-          body: Center(
-            child: LoadingAnimationWidget.discreteCircle(
-              size: 32,
-              color: Colors.black,
-              secondRingColor: Colors.indigo,
-              thirdRingColor: Colors.pink.shade400,
-            ),
-          ),
-        )
-        : Scaffold(
-          appBar: AppBar(
-            centerTitle: true,
-            title: const Text(
-              "Ajouter un Remboursement",
-              style: TextStyle(
-                fontSize: 18,
-                color: blackColor,
-                fontWeight: FontWeight.bold,
+            backgroundColor: Colors.white,
+            body: Center(
+              child: LoadingAnimationWidget.discreteCircle(
+                size: 32,
+                color: Colors.black,
+                secondRingColor: Colors.indigo,
+                thirdRingColor: Colors.pink.shade400,
               ),
             ),
+          )
+        : Scaffold(
+            appBar: AppBar(
+              centerTitle: true,
+              title: const Text(
+                "Ajouter un Remboursement",
+                style: TextStyle(
+                  fontSize: 18,
+                  color: blackColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+            ),
             backgroundColor: Colors.white,
-            // elevation: 1,
-            foregroundColor: Colors.black,
-          ),
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Column(
-                      children: [
-                        _buildTextField("Nom Médecin", nomMedecinController),
-                        _buildTextField("Spécialité", specialiteController),
-                        _buildDropdown(
-                          "Pharmacie",
-                          listePharmacie,
-                          ['pharmacie 1', 'pharmacie 2', 'pharmacie 3'],
-                          (val) => setState(() => listePharmacie = val),
-                        ),
-                        _buildDropdown(
-                          "Genre",
-                          genreClient,
-                          ['Homme', 'Femme'],
-                          (val) => setState(() => genreClient = val),
-                        ),
-                        _buildTextField("Membre", membreController),
-                        _buildDatePicker(context),
-                        _buildTextField("Code CNAM", codeCnamController),
-                        _buildTextField("Téléphone", numeroController),
-                      ],
+            body: SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: Column(
+                        children: [
+                          _buildTextField("Nom Médecin", nomMedecinController),
+                          _buildTextField("Spécialité", specialiteController),
+                          _buildDropdown(
+                            "Pharmacie",
+                            listePharmacie,
+                            ['pharmacie 1', 'pharmacie 2', 'pharmacie 3'],
+                            (val) => setState(() => listePharmacie = val),
+                          ),
+                          _buildDropdown(
+                            "Genre",
+                            genreClient,
+                            ['Homme', 'Femme'],
+                            (val) => setState(() => genreClient = val),
+                          ),
+                          _buildTextField("Nom du Membre", membreController),
+                          _buildTextField("Prénom du Membre", prenomMembreController),
+                          _buildDatePicker(context),
+                          _buildTextField("Code CNAM", codeCnamController),
+                          _buildTextField("Téléphone", numeroController),
+                          _buildTextField("CIN", cinController),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        if (!validerNumero(numeroController.text)) {
-                          QuickAlert.show(
-                            context: context,
-                            type: QuickAlertType.warning,
-                            text:
-                                "Veuillez entrer un numéro de téléphone valide (8 chiffres)",
-                          );
-                          return;
-                        }
+                    const SizedBox(height: 30),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          if (!validerNumero(numeroController.text)) {
+                            QuickAlert.show(
+                              context: context,
+                              type: QuickAlertType.warning,
+                              text: "Veuillez entrer un numéro de téléphone valide (8 chiffres)",
+                            );
+                            return;
+                          }
 
-                        await ajouterRemboursement();
-                        afficherAlert();
-                      },
-                      // icon: const Icon(Icons.send),
-                      label:
-                          isLoading
-                              ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                              : const Text(
+                          if (cinController.text.length != 8 ||
+                              int.tryParse(cinController.text) == null) {
+                            QuickAlert.show(
+                              context: context,
+                              type: QuickAlertType.warning,
+                              text: "Veuillez entrer un numéro CIN valide (8 chiffres)",
+                            );
+                            return;
+                          }
+
+                          await ajouterRemboursement();
+                          afficherAlert();
+                        },
+                        label: isLoading
+                            ? const CircularProgressIndicator(color: Colors.white)
+                            : const Text(
                                 "Ajouter un Remboursement",
                                 style: TextStyle(color: Colors.white),
                               ),
-                      style: ElevatedButton.styleFrom(
-                        minimumSize: const Size.fromHeight(50),
-                        backgroundColor: mainColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(50),
+                          backgroundColor: mainColor,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
+          );
+  }
+
+  @override
+  void dispose() {
+    nomMedecinController.dispose();
+    specialiteController.dispose();
+    membreController.dispose();
+    prenomMembreController.dispose();
+    codeCnamController.dispose();
+    numeroController.dispose();
+    cinController.dispose();
+    super.dispose();
   }
 }
