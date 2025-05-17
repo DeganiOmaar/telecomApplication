@@ -22,6 +22,8 @@ class _RegisterPageState extends State<RegisterPage> {
   GlobalKey<FormState> formstate = GlobalKey<FormState>();
   bool isPasswordVisible = true;
   String? selectedRole;
+  TextEditingController matriculeController = TextEditingController();
+  TextEditingController directionController = TextEditingController(text: "Direction Régionale de Nabeul");
   TextEditingController nomController = TextEditingController();
   TextEditingController prenomController = TextEditingController();
   TextEditingController emailController = TextEditingController();
@@ -44,6 +46,8 @@ class _RegisterPageState extends State<RegisterPage> {
           .collection('users')
           .doc(FirebaseAuth.instance.currentUser!.uid)
           .set({
+            "matricule":matriculeController.text,
+            "direction": directionController.text,
             "nom": nomController.text,
             "prenom": prenomController.text,
             "email": emailController.text,
@@ -110,6 +114,44 @@ class _RegisterPageState extends State<RegisterPage> {
                   "Rejoignez notre communauté en quelques étapes simples.",
                   style: TextStyle(color: Colors.black),
                 ),
+                const SizedBox(height: 30),
+                RegistrationTextField(
+                 icon: CupertinoIcons.number,
+                    text: "  N° Matricule",
+                    controller: matriculeController,
+                    validator: (value) {
+                    if (value == null || value.isEmpty) {
+                     return "Entrez le N° matricule";
+                   } else if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
+                     return "Le matricule doit être numérique";
+                   }
+                   return null;
+                 },
+               ),
+              const SizedBox(height: 30),
+TextFormField(
+  controller: directionController,
+  readOnly: true, // ✅ Mieux que enabled: false si tu veux garder le style
+  decoration: InputDecoration(
+    prefixIcon: const Icon(CupertinoIcons.location_solid, color: Colors.black),
+    hintText: "Direction Régionale",
+    hintStyle: const TextStyle(color: Colors.black, fontSize: 16),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(25),
+      borderSide: const BorderSide(color: Colors.black),
+    ),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(25),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(25),
+      borderSide: const BorderSide(color: Colors.black),
+    ),
+    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+  ),
+),
+
+
                 const SizedBox(height: 50),
                 Row(
                   children: [

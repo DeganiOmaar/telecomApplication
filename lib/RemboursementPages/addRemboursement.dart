@@ -20,25 +20,32 @@ class AddRemboursement extends StatefulWidget {
 
 class _AddRemboursementState extends State<AddRemboursement> {
   bool validerNumero(String numero) {
-    final RegExp regex = RegExp(r'^[0-9]{8}$');
+    final RegExp regex = RegExp(r'^[0-9]{8}\$');
     return regex.hasMatch(numero);
   }
 
   bool isLoading = false;
   bool isLoadingData = true;
-  DateTime startDate = DateTime.now();
+  DateTime birthDate = DateTime.now();
+  bool isBirthDatePicked = false;
+
+  DateTime acteDate = DateTime.now();
+  bool isActeDatePicked = false;
 
   String? listePharmacie;
   String? genreClient;
-
+  final numeroBSController = TextEditingController();
   final nomMedecinController = TextEditingController();
+  final nometprenomAdherentController = TextEditingController();
+  final codeAdherentController = TextEditingController();
+  final adresseController = TextEditingController();
+  final nomEtPrenomMaladeController = TextEditingController();
+  final acteController = TextEditingController();
   final specialiteController = TextEditingController();
-  final membreController = TextEditingController();
   final prenomMembreController = TextEditingController();
   final codeCnamController = TextEditingController();
   final numeroController = TextEditingController();
-  final cinController = TextEditingController();
-
+ 
   Map userData = {};
 
   @override
@@ -74,16 +81,20 @@ class _AddRemboursementState extends State<AddRemboursement> {
         'user_id': userData['uid'],
         'nom': userData['nom'],
         'prenom': userData['prenom'],
+        'numeroBS': numeroBSController.text,
+        'nomEtPrenomAdherent': nometprenomAdherentController.text,
+        'codeAdherent': codeAdherentController.text,
+        'adresse': adresseController.text,
+        'codeCnam': codeCnamController.text,
+        'nomEtPrenomMalade': nomEtPrenomMaladeController.text,
+        'acte': acteController.text,
+        'dateActe': acteDate,
         'nomMedecin': nomMedecinController.text,
         'specialite': specialiteController.text,
         'pharmacie': listePharmacie,
         'genre': genreClient,
-        'member': membreController.text,
+        'dateNaissance': birthDate,
         'prenomMembre': prenomMembreController.text,
-        'dateNaissance': startDate,
-        'codeCnam': codeCnamController.text,
-        'numero': numeroController.text,
-        'cin': cinController.text,
         'etat': 'En attente',
       });
 
@@ -109,7 +120,7 @@ class _AddRemboursementState extends State<AddRemboursement> {
 
   Widget _buildTextField(String label, TextEditingController controller) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
@@ -134,7 +145,7 @@ class _AddRemboursementState extends State<AddRemboursement> {
     void Function(String?) onChanged,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: DropdownButtonFormField<String>(
         value: value,
         decoration: InputDecoration(
@@ -159,11 +170,9 @@ class _AddRemboursementState extends State<AddRemboursement> {
     );
   }
 
-  bool isDatePicked = false;
-
-  Widget _buildDatePicker(BuildContext context) {
+  Widget _buildBirthDatePicker(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: InkWell(
         onTap: () async {
           final picked = await showDatePicker(
@@ -174,8 +183,8 @@ class _AddRemboursementState extends State<AddRemboursement> {
           );
           if (picked != null) {
             setState(() {
-              startDate = picked;
-              isDatePicked = true;
+              birthDate = picked;
+              isBirthDatePicked = true;
             });
           }
         },
@@ -188,9 +197,46 @@ class _AddRemboursementState extends State<AddRemboursement> {
                 borderRadius: BorderRadius.circular(12)),
           ),
           child: Text(
-            isDatePicked
-                ? DateFormat('dd/MM/yyyy').format(startDate)
+            isBirthDatePicked
+                ? DateFormat('dd/MM/yyyy').format(birthDate)
                 : "Date de naissance",
+            style: const TextStyle(fontSize: 16, color: Colors.black),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActeDatePicker(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: InkWell(
+        onTap: () async {
+          final picked = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(1900),
+            lastDate: DateTime(2100),
+          );
+          if (picked != null) {
+            setState(() {
+              acteDate = picked;
+              isActeDatePicked = true;
+            });
+          }
+        },
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: "Date de l'acte",
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12)),
+          ),
+          child: Text(
+            isActeDatePicked
+                ? DateFormat('dd/MM/yyyy').format(acteDate)
+                : "Date de l'acte",
             style: const TextStyle(fontSize: 16, color: Colors.black),
           ),
         ),
@@ -218,7 +264,7 @@ class _AddRemboursementState extends State<AddRemboursement> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
-          "Ajouter un Remboursement",
+          "Ajouter un Bulletin de Soin",
           style: TextStyle(
             fontSize: 18,
             color: blackColor,
@@ -235,6 +281,14 @@ class _AddRemboursementState extends State<AddRemboursement> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _buildTextField("Numéro Bulletin de Soin", numeroBSController),
+              _buildTextField("Nom et prénom de l'adhérent", nometprenomAdherentController),
+              _buildTextField("Code de l'adhérent", codeAdherentController),
+              _buildTextField("Adresse", adresseController),
+              _buildTextField("Code CNAM", codeCnamController),
+              _buildTextField("Nom et prénom du malade", nomEtPrenomMaladeController),
+              _buildTextField("Acte", acteController),
+              _buildActeDatePicker(context),
               _buildTextField("Nom Médecin", nomMedecinController),
               _buildTextField("Spécialité", specialiteController),
               _buildDropdown(
@@ -249,46 +303,18 @@ class _AddRemboursementState extends State<AddRemboursement> {
                 ['Homme', 'Femme'],
                 (val) => setState(() => genreClient = val),
               ),
-              _buildTextField("Nom du Membre", membreController),
-              _buildTextField("Prénom du Membre", prenomMembreController),
-              _buildDatePicker(context),
-              _buildTextField("Code CNAM", codeCnamController),
-              _buildTextField("Téléphone", numeroController),
-              _buildTextField("CIN", cinController),
+              _buildBirthDatePicker(context),
               const SizedBox(height: 30),
               ElevatedButton.icon(
                 onPressed: isLoading
                     ? null
                     : () async {
-                        // validations
-                        if (!validerNumero(numeroController.text)) {
-                          QuickAlert.show(
-                            context: context,
-                            type: QuickAlertType.warning,
-                            text:
-                                "Veuillez entrer un numéro de téléphone valide (8 chiffres)",
-                          );
-                          return;
-                        }
-                        if (cinController.text.length != 8 ||
-                            int.tryParse(cinController.text) == null) {
-                          QuickAlert.show(
-                            context: context,
-                            type: QuickAlertType.warning,
-                            text:
-                                "Veuillez entrer un numéro CIN valide (8 chiffres)",
-                          );
-                          return;
-                        }
-
-                        // ajout
                         try {
                           await ajouterRemboursement();
-                          // retour et snackbar
                           Get.back();
                           Get.snackbar(
                             'Succès',
-                            'Remboursement ajouté',
+                            'Bulletin de Soin ajouté',
                             snackPosition: SnackPosition.BOTTOM,
                           );
                         } catch (_) {
@@ -310,7 +336,7 @@ class _AddRemboursementState extends State<AddRemboursement> {
                       )
                     : const Icon(Icons.add),
                 label: const Text(
-                  "Ajouter un Remboursement",
+                  "Ajouter un Bulletin de Soin",
                   style: TextStyle(color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -331,13 +357,16 @@ class _AddRemboursementState extends State<AddRemboursement> {
 
   @override
   void dispose() {
+    numeroBSController.dispose();
+    nometprenomAdherentController.dispose();
+    codeAdherentController.dispose();
+    adresseController.dispose();
+    nomEtPrenomMaladeController.dispose();
+    acteController.dispose();
     nomMedecinController.dispose();
     specialiteController.dispose();
-    membreController.dispose();
     prenomMembreController.dispose();
     codeCnamController.dispose();
-    numeroController.dispose();
-    cinController.dispose();
     super.dispose();
   }
 }

@@ -29,9 +29,11 @@ class SendReclamation extends StatefulWidget {
 }
 
 class _SendReclamationState extends State<SendReclamation> {
+  TextEditingController dateActeController = TextEditingController();
+  TextEditingController bsNumberController = TextEditingController();
   TextEditingController emailController = TextEditingController();
   TextEditingController subjectController = TextEditingController();
-  TextEditingController messageController = TextEditingController();
+  TextEditingController objetController = TextEditingController();
   bool isLoadingReclamation = false;
 
 ajouterReclamation() async {
@@ -49,8 +51,10 @@ ajouterReclamation() async {
       'nom': widget.userNom,
       'prenom': widget.userPrenom,
       'email': widget.userEmail,
+      'date_acte': dateActeController.text,
+       'bs_number': bsNumberController.text,
       'subject': subjectController.text,
-      'message': messageController.text,
+      'objet': objetController.text,
       'reclamation_date': DateTime.now(),
     });
 
@@ -71,8 +75,34 @@ ajouterReclamation() async {
     isLoadingReclamation = false;
   });
 }
+    Future<void> _selectDate(BuildContext context) async {
+  DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+  );
+  if (picked != null) {
+    setState(() {
+      dateActeController.text = "${picked.day}/${picked.month}/${picked.year}";
+    });
+  }
+}
+             
+  afficherAlert() {Future<void> _selectDate(BuildContext context) async {
+  DateTime? picked = await showDatePicker(
+    context: context,
+    initialDate: DateTime.now(),
+    firstDate: DateTime(2000),
+    lastDate: DateTime(2100),
+  );
+  if (picked != null) {
+    setState(() {
+      dateActeController.text = "${picked.day}/${picked.month}/${picked.year}";
+    });
+  }
+}
 
-  afficherAlert() {
     QuickAlert.show(
       context: context,
       type: QuickAlertType.success,
@@ -81,7 +111,7 @@ ajouterReclamation() async {
       onConfirmBtnTap: () {
         emailController.clear();
         subjectController.clear();
-        messageController.clear();
+        objetController.clear();
         Navigator.of(context).pop();
       },
     );
@@ -113,18 +143,39 @@ ajouterReclamation() async {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 30),
-                const Text(
-                  "Bienvenue dans notre espace de contact",
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: blackColor,
-                  ),
-                ),
-                SizedBox(height: 50,),
-                const SizedBox(height: 20),
+const Text(
+  "Bienvenue dans notre espace de contact",
+  style: TextStyle(
+    fontSize: 17,
+    fontWeight: FontWeight.bold,
+    color: blackColor,
+  ),
+),
+const SizedBox(height: 10),
+TextField(
+  controller: dateActeController,
+  readOnly: true,
+  onTap: () => _selectDate(context),
+  decoration: InputDecoration(
+    labelText: "Date de l'acte",
+    hintText: "Choisir une date",
+    suffixIcon: const Icon(Icons.calendar_today),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(25),
+    ),
+    contentPadding: const EdgeInsets.symmetric(
+      horizontal: 15,
+      vertical: 15,
+    ),
+  ),
+),
+ const SizedBox(height: 10),
+CustomTextField(text: "N° Bulletin de Soin", controller: bsNumberController),
+const SizedBox(height: 10),
+
+                const SizedBox(height: 10),
                 CustomTextField(text: "Sujet", controller: subjectController),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
 
                 SizedBox(
                   width:
@@ -132,14 +183,14 @@ ajouterReclamation() async {
                       0.9, // <-- TextField width
                   height: 180, // <-- TextField height
                   child: TextField(
-                    controller: messageController,
+                    controller:objetController,
                     maxLines: null,
                     expands: true,
                     keyboardType: TextInputType.multiline,
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.transparent,
-                      hintText: "Message",
+                      hintText: "Objet",
                       hintStyle: const TextStyle(color: Colors.black),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(25),

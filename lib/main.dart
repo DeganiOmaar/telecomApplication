@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: FirebaseAuth.instance.currentUser == null
           ? const LoginPage()
-          : const Screens(),
+          : const Screens()
     );
   }
 }

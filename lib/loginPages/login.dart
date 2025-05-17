@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color.fromARGB(255, 182, 110, 255),
       resizeToAvoidBottomInset: false,
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
@@ -98,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
                 const Row(
                   children: [
                     Text(
-                      "Connecter",
+                      " Se Connecter",
                       style: TextStyle(fontSize: 21, fontWeight: FontWeight.bold),
                     ),
                   ],
@@ -235,7 +235,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 )
                                 : const Text(
-                                  "Connecter",
+                                  " Se Connecter",
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: whiteColor,
