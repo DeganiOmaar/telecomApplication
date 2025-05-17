@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -110,7 +109,6 @@ class _RemboursementListState extends State<RemboursementList> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // En-tête : Nom + État
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -131,26 +129,28 @@ class _RemboursementListState extends State<RemboursementList> {
 
                         const Divider(height: 20),
 
-                        // Affichage de tous les champs demandés
-                        _buildInfoRow("📄ID Remboursement", data['Remboursement_id']),
-                        _buildInfoRow("👤Utilisateur (ID)", data['user_id']),
-                        _buildInfoRow("🧾Numéro BS", data['numeroBS']),
-                        _buildInfoRow("🧑‍⚕️Adhérent", data['nomEtPrenomAdherent']),
-                        _buildInfoRow("🔢Code Adhérent", data['codeAdherent']),
-                        _buildInfoRow("🏠Adresse", data['adresse']),
-                        _buildInfoRow("💳Code CNAM", data['codeCnam']),
-                        _buildInfoRow("🤕Malade", data['nomEtPrenomMalade']),
-                        _buildInfoRow("💉Acte", data['acte']),
-                        _buildInfoRow("📅Date de l'acte", DateFormat('dd/MM/yyyy').format(data['dateActe'].toDate())),
-                        _buildInfoRow("👨‍⚕️Médecin", data['nomMedecin']),
-                        _buildInfoRow("🩺Spécialité", data['specialite']),
-                        _buildInfoRow("📍Pharmacie", data['pharmacie']),
-                        _buildInfoRow("👤Genre", data['genre']),
-                        _buildInfoRow("🎂Date de naissance", DateFormat('dd/MM/yyyy').format(data['dateNaissance'].toDate())),
+                        _buildInfoRow("🧾 Numéro BS", data['numeroBS'].toString()),
+                        _buildInfoRow("🧑‍⚕️ Adhérent", data['nomEtPrenomAdherent']),
+                        _buildInfoRow("🔢 Code Adhérent", data['codeAdherent'].toString()),
+                        _buildInfoRow("🏠 Adresse", data['adresse']),
+                        _buildInfoRow("💳 Code CNAM", data['codeCnam'].toString()),
+                        _buildInfoRow("🤕 Malade", data['nomEtPrenomMalade']),
+                        _buildInfoRow("💉 Acte", data['acte']),
+                        _buildInfoRow(
+                          "📅 Date de l'acte",
+                          DateFormat('dd/MM/yyyy').format((data['dateActe'] as Timestamp).toDate()),
+                        ),
+                        _buildInfoRow("👨‍⚕️ Médecin", data['nomMedecin']),
+                        _buildInfoRow("🩺 Spécialité", data['specialite']),
+                        _buildInfoRow("📍 Pharmacie", data['pharmacie']),
+                        _buildInfoRow("👤 Genre", data['genre']),
+                        _buildInfoRow(
+                          "🎂 Date de naissance",
+                          DateFormat('dd/MM/yyyy').format((data['dateNaissance'] as Timestamp).toDate()),
+                        ),
 
                         const SizedBox(height: 12),
 
-                        // Actions selon rôle et état
                         if (data['etat'] == 'En attente' && userRole == 'admin')
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -170,12 +170,11 @@ class _RemboursementListState extends State<RemboursementList> {
                             ],
                           ),
 
-                        // Télécharger PDF si accepté
                         if (data['etat'] == 'Accepté')
                           ElevatedButton.icon(
                             onPressed: () async {
                               await generateAndOpenPdf(data, docId);
-                              Get.snackbar('Téléchargement', 'PDF téléchargé avec succès', snackPosition: SnackPosition.TOP);
+                              Get.snackbar('Téléchargement', 'PDF téléchargé et ouvert', snackPosition: SnackPosition.TOP);
                             },
                             icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
                             label: const Text("Télécharger PDF", style: TextStyle(color: Colors.white)),
@@ -193,14 +192,6 @@ class _RemboursementListState extends State<RemboursementList> {
     );
   }
 
-  Future<void> changerEtat(String docId, String nouvelEtat) async {
-    await FirebaseFirestore.instance.collection('remboursement').doc(docId).update({'etat': nouvelEtat});
-  }
-
-  Future<void> generateAndOpenPdf(Map<String, dynamic> data, String docId) async {
-    // ... même code que précédemment ...
-  }
-
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -212,5 +203,98 @@ class _RemboursementListState extends State<RemboursementList> {
         ],
       ),
     );
+  }
+
+  Future<void> changerEtat(String docId, String nouvelEtat) async {
+    await FirebaseFirestore.instance.collection('remboursement').doc(docId).update({'etat': nouvelEtat});
+  }
+
+  Future<void> generateAndOpenPdf(Map<String, dynamic> data, String docId) async {
+    // Logo
+    final logoBytes = (await rootBundle.load('assets/images/logoTT.png')).buffer.asUint8List();
+    final pw.MemoryImage logo = pw.MemoryImage(logoBytes);
+
+    // Signature admin si existante
+    pw.MemoryImage? signature;
+    if (data['signature'] != null && data['signature'] is String) {
+      signature = pw.MemoryImage(base64Decode(data['signature'] as String));
+    }
+
+    final pdf = pw.Document();
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.center,
+              children: [pw.Image(logo, width: 60)],
+            ),
+            pw.SizedBox(height: 16),
+            pw.Center(
+              child: pw.Text(
+                'Bulletin de Soins',
+                style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+              ),
+            ),
+            pw.SizedBox(height: 24),
+            pw.Table.fromTextArray(
+              border: pw.TableBorder.all(color: PdfColors.grey300),
+              headerDecoration: pw.BoxDecoration(color: PdfColors.grey200),
+              headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              headers: ['Champ', 'Détail'],
+              data: [
+                ['Numéro BS', data['numeroBS']],
+                ['Adhérent', data['nomEtPrenomAdherent']],
+                ['Code Adhérent', data['codeAdherent']],
+                ['Adresse', data['adresse']],
+                ['Code CNAM', data['codeCnam']],
+                ['Malade', data['nomEtPrenomMalade']],
+                ['Acte', data['acte']],
+                ['Date de l\'acte', DateFormat('dd/MM/yyyy').format((data['dateActe'] as Timestamp).toDate())],
+                ['Médecin', data['nomMedecin']],
+                ['Spécialité', data['specialite']],
+                ['Pharmacie', data['pharmacie']],
+                ['Genre', data['genre']],
+                ['Date de naissance', DateFormat('dd/MM/yyyy').format((data['dateNaissance'] as Timestamp).toDate())],
+              ],
+            ),
+            if (signature != null) pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.SizedBox(height: 20),
+                pw.Text('Signature Admin :', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 8),
+                pw.Image(signature, width: 150, height: 80),
+              ],
+            ),
+            pw.Spacer(),
+            pw.Text(
+              'Émis le ${DateFormat('dd/MM/yyyy – HH:mm').format(DateTime.now())}',
+              style: pw.TextStyle(color: PdfColors.grey600),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final bytes = await pdf.save();
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/bulletin_$docId.pdf');
+    await file.writeAsBytes(bytes);
+
+    if (Platform.isAndroid) {
+      final status = await Permission.manageExternalStorage.request();
+      if (status.isGranted) {
+        final downloads = Directory('/storage/emulated/0/Download');
+        final outFile = File('${downloads.path}/bulletin_$docId.pdf');
+        await outFile.writeAsBytes(bytes);
+        await OpenFile.open(outFile.path);
+        return;
+      }
+    }
+    await OpenFile.open(file.path);
   }
 }

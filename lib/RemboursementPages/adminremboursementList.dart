@@ -1,7 +1,5 @@
-// RemboursementAdminList.dart
 import 'dart:io';
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -87,7 +85,8 @@ class _RemboursementAdminListState extends State<RemboursementAdminList> {
                   if (snap.connectionState == ConnectionState.waiting) {
                     return Center(
                       child: LoadingAnimationWidget.discreteCircle(
-                        size: 32, color: Colors.black,
+                        size: 32,
+                        color: Colors.black,
                         secondRingColor: Colors.indigo,
                         thirdRingColor: Colors.pink.shade400,
                       ),
@@ -149,8 +148,7 @@ class _RemboursementAdminListState extends State<RemboursementAdminList> {
                                       icon: const Icon(Icons.picture_as_pdf, color: Colors.blue),
                                       onPressed: () async {
                                         await generateAndOpenPdfAdmin(data, id);
-                                        Get.snackbar('Téléchargement', 'PDF enregistré',
-                                            snackPosition: SnackPosition.TOP);
+                                        Get.snackbar('Téléchargement', 'PDF enregistré', snackPosition: SnackPosition.TOP);
                                       },
                                     ),
                                 ],
@@ -158,33 +156,26 @@ class _RemboursementAdminListState extends State<RemboursementAdminList> {
 
                               const Divider(height: 20),
 
-                              // Tous les champs + emojis
-                              _buildInfoRow('📄 ID', data['Remboursement_id']),
-                              _buildInfoRow('👤 Utilisateur', data['user_id']),
-                              _buildInfoRow('🧾 Numéro BS', data['numeroBS']),
+                              // Champs adaptés
+                              _buildInfoRow('🧾 Numéro BS', data['numeroBS'].toString()),
                               _buildInfoRow('🧑‍⚕️ Adhérent', data['nomEtPrenomAdherent']),
-                              _buildInfoRow('🔢 Code Adhérent', data['codeAdherent']),
+                              _buildInfoRow('🔢 Code Adhérent', data['codeAdherent'].toString()),
                               _buildInfoRow('🏠 Adresse', data['adresse']),
-                              _buildInfoRow('💳 Code CNAM', data['codeCnam']),
+                              _buildInfoRow('💳 Code CNAM', data['codeCnam'].toString()),
                               _buildInfoRow('🤕 Malade', data['nomEtPrenomMalade']),
                               _buildInfoRow('💉 Acte', data['acte']),
                               _buildInfoRow(
-                                '📅 Date Acte',
-                                DateFormat('dd/MM/yyyy')
-                                    .format((data['dateActe'] as Timestamp).toDate()),
+                                '📅 Date de l\'acte',
+                                DateFormat('dd/MM/yyyy').format((data['dateActe'] as Timestamp).toDate()),
                               ),
                               _buildInfoRow('👨‍⚕️ Médecin', data['nomMedecin']),
                               _buildInfoRow('🩺 Spécialité', data['specialite']),
-                              _buildInfoRow(
-                                '🎂 Naissance',
-                                DateFormat('dd/MM/yyyy')
-                                    .format((data['dateNaissance'] as Timestamp).toDate()),
-                              ),
-                              _buildInfoRow('📞 Téléphone', data['numero']),
                               _buildInfoRow('📍 Pharmacie', data['pharmacie']),
                               _buildInfoRow('👤 Genre', data['genre']),
-                              _buildInfoRow('👥 Prénom Membre', data['prenomMembre']),
-                              _buildInfoRow('🔖 État', data['etat']),
+                              _buildInfoRow(
+                                '🎂 Date de naissance',
+                                DateFormat('dd/MM/yyyy').format((data['dateNaissance'] as Timestamp).toDate()),
+                              ),
                             ],
                           ),
                         ),
@@ -261,17 +252,9 @@ class _RemboursementAdminListState extends State<RemboursementAdminList> {
   }
 
   Future<void> generateAndOpenPdfAdmin(Map<String, dynamic> data, String id) async {
-    // Chargement du logo
     final logoBytes = (await rootBundle.load('assets/images/logoTT.png')).buffer.asUint8List();
     final pw.MemoryImage logo = pw.MemoryImage(logoBytes);
 
-    // Signature (si présente)
-    pw.MemoryImage? signature;
-    if (data['signature'] != null) {
-      signature = pw.MemoryImage(base64Decode(data['signature']));
-    }
-
-    // Construction du PDF
     final pdf = pw.Document();
     pdf.addPage(
       pw.Page(
@@ -280,9 +263,8 @@ class _RemboursementAdminListState extends State<RemboursementAdminList> {
         build: (context) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            // Logo et titre
             pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: pw.MainAxisAlignment.center,
               children: [pw.Image(logo, width: 60), pw.SizedBox()],
             ),
             pw.SizedBox(height: 16),
@@ -293,16 +275,12 @@ class _RemboursementAdminListState extends State<RemboursementAdminList> {
               ),
             ),
             pw.SizedBox(height: 24),
-
-            // Tableau des champs
             pw.Table.fromTextArray(
               border: pw.TableBorder.all(color: PdfColors.grey300),
               headerDecoration: pw.BoxDecoration(color: PdfColors.grey200),
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
               headers: ['Champ', 'Détail'],
               data: [
-                ['ID', data['Remboursement_id']],
-                ['Utilisateur', data['user_id']],
                 ['Numéro BS', data['numeroBS']],
                 ['Adhérent', data['nomEtPrenomAdherent']],
                 ['Code Adhérent', data['codeAdherent']],
@@ -310,28 +288,15 @@ class _RemboursementAdminListState extends State<RemboursementAdminList> {
                 ['Code CNAM', data['codeCnam']],
                 ['Malade', data['nomEtPrenomMalade']],
                 ['Acte', data['acte']],
-                [
-                  'Date Acte',
-                  DateFormat('dd/MM/yyyy').format((data['dateActe'] as Timestamp).toDate())
-                ],
+                ['Date de l’acte', DateFormat('dd/MM/yyyy').format((data['dateActe'] as Timestamp).toDate())],
                 ['Médecin', data['nomMedecin']],
                 ['Spécialité', data['specialite']],
-                ['Téléphone', data['numero']],
                 ['Pharmacie', data['pharmacie']],
                 ['Genre', data['genre']],
-                [
-                  'Naissance',
-                  DateFormat('dd/MM/yyyy').format((data['dateNaissance'] as Timestamp).toDate())
-                ],
-                ['Prénom Membre', data['prenomMembre']],
-                ['État', data['etat']],
+                ['Date de naissance', DateFormat('dd/MM/yyyy').format((data['dateNaissance'] as Timestamp).toDate())],
               ],
             ),
             pw.Spacer(),
-
-            // Signature et date d’émission
-            if (signature != null) pw.Image(signature, width: 150, height: 80),
-            pw.SizedBox(height: 20),
             pw.Text(
               'Émis le ${DateFormat('dd/MM/yyyy – HH:mm').format(DateTime.now())}',
               style: pw.TextStyle(color: PdfColors.grey600),
@@ -341,7 +306,6 @@ class _RemboursementAdminListState extends State<RemboursementAdminList> {
       ),
     );
 
-    // Sauvegarde & ouverture
     final bytes = await pdf.save();
     final dir = await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/remboursement_$id.pdf');

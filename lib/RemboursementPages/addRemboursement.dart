@@ -20,7 +20,7 @@ class AddRemboursement extends StatefulWidget {
 
 class _AddRemboursementState extends State<AddRemboursement> {
   bool validerNumero(String numero) {
-    final RegExp regex = RegExp(r'^[0-9]{8}\$');
+    final RegExp regex = RegExp(r'^[0-9]+$');
     return regex.hasMatch(numero);
   }
 
@@ -109,7 +109,6 @@ class _AddRemboursementState extends State<AddRemboursement> {
             'Nouvelle demande de remboursement envoyée par ${userData['nom']} ${userData['prenom']}.',
         'date': Timestamp.now(),
       });
-
     } catch (err) {
       debugPrint(err.toString());
       rethrow;
@@ -309,6 +308,16 @@ class _AddRemboursementState extends State<AddRemboursement> {
                 onPressed: isLoading
                     ? null
                     : () async {
+                        if (!validerNumero(numeroBSController.text) ||
+                            !validerNumero(codeAdherentController.text) ||
+                            !validerNumero(codeCnamController.text)) {
+                          QuickAlert.show(
+                            context: context,
+                            type: QuickAlertType.error,
+                            text: "Le numéro de bulletin, le code adhérent et le code CNAM doivent être numériques.",
+                          );
+                          return;
+                        }
                         try {
                           await ajouterRemboursement();
                           Get.back();
